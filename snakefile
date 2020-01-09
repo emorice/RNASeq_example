@@ -1,25 +1,20 @@
 from glob import glob
 
-def final_input(_):
-	seqs = [ '.'.join(path.split('/')[-1].split('.')[:-1])
+def seq_names():
+    return [ '.'.join(path.split('/')[-1].split('.')[:-1])
 		for path in glob(checkpoints.fetch_source.get().output[0] + '/*.fastq')
 		]
-	qfiles =  [
-		('quality/source/%s_fastqc.html' % seq) for seq in seqs
-		] + [
-		('quality/trimmed/%sP_fastqc.html' % seq) for seq in seqs
-		] + [
-		('quality/trimmed/%sU_fastqc.html' % seq) for seq in seqs
+
+def bams(_):
+    seqs = seq_names()
+    return [
+		'mapped/%s.Aligned.sortedByCoord.out.bam' % seq[:-3] for seq
+                in seqs
 		]
-	mfiles = [
-		'mapped/%s.Aligned.sortedByCoord.out.bam' % seq[:-3] for seq in seqs
-		]
-	return qfiles + mfiles
 
 rule collect:
 	input:
-		final_input,
-		'chr18.idx/chrName.txt'
+		'counts.txt'
 
 checkpoint fetch_source:
 	output:
@@ -109,3 +104,41 @@ rule map:
 		--outFileNamePrefix mapped/{wildcards.seq}. \
 		--readFilesIn {input[0]} {input[1]}
 		"""
+
+rule index_mappings:
+    input:
+        'mapped/{seq}.Aligned.sortedByCoord.out.bam'
+    output:
+        'mapped/{seq}.Aligned.sortedByCoord.out.bam.bai'
+    shell:
+        """
+        samtools index {input}
+        """
+rule count_features:
+    input:
+        'chr18.gtf',
+        bams
+    output:
+        'fcounts.txt'
+    shell:
+        """
+        featureCounts -p -t exon -g gene_id \
+                -o {output} -a {input}
+        """
+
+rule tabulate:
+    input:
+        'chr18.gtf',
+        'fcounts.txt'
+    output:
+        'counts.txt'
+    shell:
+        """
+        export LC_ALL=C
+        join \
+            <(perl -ne 'print "$1 $2\n" if /gene_id \"(.*?)\".*gene_name \"(.*?)\"/' \
+            {input[0]} | sort | uniq | sort) \
+            <(sort {input[1]}) \
+            | awk '{{print $2 " " $7 " " $8 " " $9 " " $10 " " $11 " " $12}}' \
+            > {output}
+        """
