@@ -137,8 +137,9 @@ rule tabulate:
         export LC_ALL=C
         join \
             <(perl -ne 'print "$1 $2\n" if /gene_id \"(.*?)\".*gene_name \"(.*?)\"/' \
-            {input[0]} | sort | uniq | sort) \
+            {input[0]} | sort | uniq) \
             <(sort {input[1]}) \
+            | grep 'chr18' \
             | awk '{{print $2 " " $7 " " $8 " " $9 " " $10 " " $11 " " $12}}' \
             > {output}
         """
