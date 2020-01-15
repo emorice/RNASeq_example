@@ -6,9 +6,10 @@ def seq_names():
 		]
 
 def bams(_):
-    seqs = seq_names()
+    # warning : one BAM for two input files
+    seqs = sorted(set(seq[:-3] for seq in seq_names()))
     return [
-		'mapped/%s.Aligned.sortedByCoord.out.bam' % seq[:-3] for seq
+		'mapped/%s.Aligned.sortedByCoord.out.bam' % seq for seq
                 in seqs
 		]
 
@@ -140,6 +141,6 @@ rule tabulate:
             {input[0]} | sort | uniq) \
             <(sort {input[1]}) \
             | grep 'chr18' \
-            | awk '{{print $2 " " $7 " " $8 " " $9 " " $10 " " $11 " " $12}}' \
+            | awk '{{print $2 " " $8 " " $9 " " $10 " " $11 " " $12 " " $13}}' \
             > {output}
         """
