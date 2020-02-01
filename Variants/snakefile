@@ -1,18 +1,24 @@
 import re
+import os
 from glob import glob
 
+
+def get_basepaths():
+    fastq = glob(os.path.join(checkpoints.deflate.get().output[0], "*.fastq.gz"))
+    return set(
+        re.sub(r'^exome/(.*)[12][^12]*$', r'\1', f)
+        for f in fastq
+        )
+
 def collect(_):
-    fastq = glob("exome/*.fastq.gz")
+    fastq = glob(os.path.join(checkpoints.deflate.get().output[0], "*.fastq.gz"))
     quality = [
         re.sub(r'exome/(.*)\.fastq\.gz', r'quality/exome/\1_fastqc.html', f)
         for f in fastq
         ]
     # Keep whatever is before the last '1' or '2' in the file names as sequence
     # identifier. This should work with many naming schemes
-    basepaths = set(
-        re.sub(r'^exome/(.*)[12][^12]*$', r'\1', f)
-        for f in fastq
-        )
+    basepaths = get_basepaths()
     trimmed = [ "trimmed/" + p + '.' + r + ".fastq" for p in basepaths for r in
             ["R1P", "R2P", "R1U", "R2U"]
             ]
@@ -151,7 +157,7 @@ def both_pileup(_):
     which is the case if you name them "something-<N/T>-something",
     "something-<normal>-<tumor>" etc.
     """
-    return sorted(glob("sorted/*.mpileup"))
+    return sorted("sorted/" + s + ".mpileup" for s in get_basepaths())
 
 rule varscan:
     input:
