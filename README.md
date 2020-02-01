@@ -8,8 +8,8 @@ Each directory contains a pipeline divided into three files:
  ## Input files
  Each pipeline requires input files :
   * For EMT, a `source` subdirectory containing the `.fastq` files, and a set of `chr18.fa`, `chr18.gtf`, `chr18.idx/`annotated and STAR-indexed genome files.
-  * For Variants, an `exome` directory containing the `.fastq.gz` file and a set of `chr16.fa.gz`, `chr16.fa.gz.*`, `gencode.v24lift37.basic.annotation.gtf.gz` annotated and BWA-indexed genome files.
- 
+  * For Variants, an `exome` directory containing the `.fastq.gz` file and a set of `chr16.fa.gz`, `chr16.fa.gz.*`, `gencode.v24lift37.basic.annotation.gtf.gz` annotated and BWA-indexed genome files. Warning: `chr16.fa.gz` must be recompressed from gzip to BGZF if necessary.
+  
  For convenience, the pipeline are written to fetch, extract and index these files autonomously, but due to the incremental and reentrant nature of snakemake pipelines, these steps will **not** be run if the files are already present, meaning that you can prepopulate the working directory with your input files, following the naming conventions, and the input steps will be automatically skipped.
  
  ## Output
