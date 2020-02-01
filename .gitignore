@@ -1,0 +1,4 @@
+EMT/EMTdata
+*.ipynb
+.ipynb_checkpoints
+*.swp
